@@ -1,0 +1,43 @@
+name: Action for Building, Merging and Uploading Binaries to Github Pages - ESP Launchpad
+description: 'Builds and uploads binaries to github pages for ESP Launchpad'
+
+inputs:
+  idf_version:
+    description: 'IDF version'
+    required: false
+    default: 'latest'
+  parallel_count:
+    description: 'Number of parallel builds'
+    required: false
+    default: 1
+  parallel_index:
+    description: 'Index of the current parallel build'
+    required: false
+    default: 1
+
+runs:
+  using: 'composite'
+  steps:
+
+    - run: echo "${{ github.action_path }}" >> $GITHUB_PATH
+      shell: bash
+
+    - run: echo "IDF_VERSION=${{ inputs.idf_version }}" >> $GITHUB_ENV
+      shell: bash
+
+    - name: Build examples
+      shell: bash
+      run: |
+        export IDF_EXTRA_ACTIONS_PATH=${GITHUB_WORKSPACE}/examples
+        ${IDF_PATH}/install.sh --enable-ci
+        . ${IDF_PATH}/export.sh
+        pip install rtoml ruamel.yaml --upgrade
+        echo "Building examples..."
+        idf-build-apps build --collect-app-info out.json --build-dir "build_@w" --parallel-count ${{ inputs.parallel_count }} --parallel-index ${{ inputs.parallel_index }}
+        echo "Merging binaries and generating config.toml..."
+        python ${GITHUB_ACTION_PATH}/generateFiles.py out.json
+        echo "Done building examples."
+
+branding:
+  icon: 'package'
+  color: 'blue'
