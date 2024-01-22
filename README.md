@@ -56,7 +56,7 @@ jobs:
           submodules: 'recursive'
 
       - name: Action for Building and Uploading Binaries
-        uses: espressif/idf-examples-launchpad-ci-action@v1.0
+        uses: espressif/idf-examples-launchpad-ci-action@v1.0.1
         with:
           idf_version: ${{ matrix.idf_ver }}
 
@@ -118,7 +118,7 @@ jobs:
           submodules: 'recursive'
 
       - name: Action for Building and Uploading Binaries
-        uses: espressif/idf-examples-launchpad-ci-action@v1.0
+        uses: espressif/idf-examples-launchpad-ci-action@v1.0.1
         with:
           idf_version: ${{ matrix.idf_ver }}
           parallel_count: ${{ matrix.parallel_count }}

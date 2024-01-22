@@ -59,7 +59,7 @@ def squash_json(input_str):
             current_app = App(app)
 
         # If we are building for a kit        
-        if (get_kit(line) != ''):
+        if (get_kit(line) and get_kit(line) != ''):
             current_app.boards.append((get_kit(line), get_target(line)))
         # If we are building for targets
         else:
