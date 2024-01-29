@@ -31,7 +31,7 @@ runs:
         export IDF_EXTRA_ACTIONS_PATH=${GITHUB_WORKSPACE}/examples
         ${IDF_PATH}/install.sh --enable-ci
         . ${IDF_PATH}/export.sh
-        pip install rtoml ruamel.yaml --upgrade
+        pip install rtoml ruamel.yaml idf-component-manager idf-build-apps==1.0.0 
         echo "Building examples..."
         idf-build-apps build --collect-app-info out.json --build-dir "build_@w" --parallel-count ${{ inputs.parallel_count }} --parallel-index ${{ inputs.parallel_index }}
         echo "Merging binaries and generating config.toml..."
