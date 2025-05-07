@@ -80,7 +80,7 @@ def merge_binaries(apps):
                 kit = board[0]
                 target = board[1]
                 cmd = ['esptool.py', '--chip', target, 'merge_bin', '-o', f'{app["name"]}-{kit}-{target}-{idf_version}.bin', '@flash_args']
-                cwd = f'{app.get("app_dir")}/build_{kit}_{target}'
+                cwd = f'{app.get("app_dir")}/build_{target}_{kit}'
                 subprocess.run(cmd, cwd=cwd)
                 print(f'Merged binaries for {app["name"]}-{kit}-{target}-{idf_version}.bin')
                 shutil.move(f'{cwd}/{app["name"]}-{kit}-{target}-{idf_version}.bin', 'binaries')
