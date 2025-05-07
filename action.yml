@@ -32,7 +32,7 @@ runs:
         . ${IDF_PATH}/export.sh
         pip install rtoml ruamel.yaml idf-component-manager idf-build-apps==2.10.1
         echo "Building examples..."
-        idf-build-apps build --collect-app-info out.json --build-dir "build_@w" --parallel-count ${{ inputs.parallel_count }} --parallel-index ${{ inputs.parallel_index }}
+        idf-build-apps build --collect-app-info out.json --build-dir "build_@w_@t" --parallel-count ${{ inputs.parallel_count }} --parallel-index ${{ inputs.parallel_index }}
         echo "Merging binaries and generating config.toml..."
         python ${GITHUB_ACTION_PATH}/generateFiles.py out.json
         echo "Done building examples."

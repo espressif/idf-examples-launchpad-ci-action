@@ -16,7 +16,7 @@ github_repo = github_repository[1]
 toml_obj = {'esp_toml_version': 1.0, 'firmware_images_url': f'https://{github_owner}.github.io/{github_repo}/', 'supported_apps': []}
 
 class App:
-    
+
     def __init__(self, app):
         # App directory
         self.app_dir = app
@@ -58,7 +58,7 @@ def squash_json(input_str):
                 output_list.append(current_app.__dict__)
             current_app = App(app)
 
-        # If we are building for a kit        
+        # If we are building for a kit
         if (get_kit(line) and get_kit(line) != ''):
             current_app.boards.append((get_kit(line), get_target(line)))
         # If we are building for targets
@@ -67,7 +67,7 @@ def squash_json(input_str):
 
     # Append last app
     output_list.append(current_app.__dict__)
-    
+
     return output_list
 
 # Merge binaries for each app
@@ -80,15 +80,15 @@ def merge_binaries(apps):
                 kit = board[0]
                 target = board[1]
                 cmd = ['esptool.py', '--chip', target, 'merge_bin', '-o', f'{app["name"]}-{kit}-{target}-{idf_version}.bin', '@flash_args']
-                cwd = f'{app.get("app_dir")}/build_{kit}'
+                cwd = f'{app.get("app_dir")}/build_{kit}_{target}'
                 subprocess.run(cmd, cwd=cwd)
                 print(f'Merged binaries for {app["name"]}-{kit}-{target}-{idf_version}.bin')
                 shutil.move(f'{cwd}/{app["name"]}-{kit}-{target}-{idf_version}.bin', 'binaries')
         # If we are merging binaries for targets
         else:
-            for target in app['targets']:            
+            for target in app['targets']:
                 cmd = ['esptool.py', '--chip', target, 'merge_bin', '-o', f'{app["name"]}-{target}-{idf_version}.bin', '@flash_args']
-                cwd = f'{app.get("app_dir")}/build'
+                cwd = f'{app.get("app_dir")}/build_{target}'
                 subprocess.run(cmd, cwd=cwd)
                 print(f'Merged binaries for {app["name"]}-{target}-{idf_version}.bin')
                 shutil.move(f'{cwd}/{app["name"]}-{target}-{idf_version}.bin', 'binaries')
@@ -110,7 +110,7 @@ def write_app(app):
         toml_obj[f'{app["name"]}-{idf_version}'] = {}
         toml_obj[f'{app["name"]}-{idf_version}']['chipsets'] = app['targets']
         for target in app['targets']:
-            toml_obj[f'{app["name"]}-{idf_version}'][f'image.{target}'] = f'{app["name"]}-{target}-{idf_version}.bin' 
+            toml_obj[f'{app["name"]}-{idf_version}'][f'image.{target}'] = f'{app["name"]}-{target}-{idf_version}.bin'
         toml_obj[f'{app["name"]}-{idf_version}']['android_app_url'] = ''
         toml_obj[f'{app["name"]}-{idf_version}']['ios_app_url'] = ''
 
@@ -127,7 +127,7 @@ def create_config_toml(apps):
             with open('binaries/config.toml', 'w') as toml_file:
                 rtoml.dump(toml_obj, toml_file)
 
-            # This is a workaround to remove the quotes around the image.<string> in the config.toml file as dot is not allowed in the key by default            
+            # This is a workaround to remove the quotes around the image.<string> in the config.toml file as dot is not allowed in the key by default
             with open('binaries/config.toml', 'r') as toml_file:
                 fixed = replace_image_string(toml_file.read())
 
