@@ -7,8 +7,7 @@ This Github Action builds merged binaries of ESP examples and if you use example
 You will have to setup Github Pages in your repository. Switch the Github pages to the branch you are running the workflow on. You can do this in the settings of your repository.
 
 ## Step 2: Configuration file
-It is important to have `.idf_build_apps.toml` configuration file in the root directory of your repository. This file is used to configure the build process. 
-For further information, please refer to the [documentation](https://docs.espressif.com/projects/idf-build-apps/en/latest/config_file.html).
+It is important to have the .idf_build_apps.toml configuration file defined in your repository. By default, this file is expected to be located in the root directory. However, you can specify a different path by using the config_file input in this GitHub Action. This file is used to configure the build process. For further information, please refer to the [documentation](https://docs.espressif.com/projects/idf-build-apps/en/latest/config_file.html).
 
 Example configuration file:
 ```toml
@@ -16,16 +15,20 @@ paths = "examples" # Paths to search for buildable projects ["examples", "compon
 target = "all" # esp32, esp32s2, esp32c3, esp32s3, all...
 recursive = true # Search for buildable projects recursively on the paths
 
-# Configuration file for the build process 
+# Configuration file for the build process
 config = "sdkconfig.defaults"
 ```
-**Do not overwrite** `collect-app-info` **and** `build-dir` **options!** They are used by the `idf-build-apps` to collect information about the build and to find the build directory. 
+**Do not overwrite** `collect-app-info` **and** `build-dir` **options!** They are used by the `idf-build-apps` to collect information about the build and to find the build directory.
 
 ## Inputs
 
 ### `idf_version`
 The version of the ESP-IDF to use for building the binaries.
 **Default:** `"latest"`
+
+### `config_file`
+The path to the `idf_build_apps.toml` configuration file
+**Default** `"./.idf_build_apps.toml"`
 
 ### `parallel_count`
 The number of parallel builds.
@@ -35,7 +38,8 @@ The number of parallel builds.
 The index of the parallel build.
 **Default:** `1`
 
-## Step 3: Create a workflow with ESP-IDF docker container. 
+
+## Step 3: Create a workflow with ESP-IDF docker container.
 ### Example usage
 
 Basic workflow:
@@ -70,7 +74,7 @@ jobs:
     needs: build
 
     permissions:
-      pages: write      
+      pages: write
       id-token: write
 
     environment:
@@ -134,7 +138,7 @@ jobs:
     needs: build
 
     permissions:
-      pages: write      
+      pages: write
       id-token: write
 
     environment:
