@@ -2,6 +2,12 @@
 
 - Nothing yet
 
+# Release v1.0.2 (20.5.2025)
+
+- Added an option to specify path to the idf-build-apps configuration file
+- Fixed a bug where the examples were not being built to indepentent directories for multiple targets
+- Updated idf-build-apps version to 2.10.1
+
 # Release v1.0.1 (22.1.2024)
 
 - Fixed a bug where the kit regex was not checked properly
