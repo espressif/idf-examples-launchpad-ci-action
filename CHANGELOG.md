@@ -2,6 +2,10 @@
 
 - Nothing yet
 
+# Release v1.0.3 (22.7.2025)
+
+- Fixed a regex for the extraction of config name
+
 # Release v1.0.2 (20.5.2025)
 
 - Added an option to specify path to the idf-build-apps configuration file

@@ -55,17 +55,17 @@ jobs:
     container: espressif/idf:${{ matrix.idf_ver }}
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: 'recursive'
 
       - name: Action for Building and Uploading Binaries
-        uses: espressif/idf-examples-launchpad-ci-action@v1.0.1
+        uses: espressif/idf-examples-launchpad-ci-action@v1.0.3
         with:
           idf_version: ${{ matrix.idf_ver }}
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: built_files
           path: binaries/
@@ -84,19 +84,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Download built files
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: built_files
           path: binaries/
 
       - name: Upload built files to gh pages
-        uses: actions/upload-pages-artifact@v2
+        uses: actions/upload-pages-artifact@v3
         with:
           path: binaries/
 
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v2
+        uses: actions/deploy-pages@v4
 ```
 
 Workflow with parallel builds:
@@ -117,19 +117,19 @@ jobs:
     container: espressif/idf:${{ matrix.idf_ver }}
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: 'recursive'
 
       - name: Action for Building and Uploading Binaries
-        uses: espressif/idf-examples-launchpad-ci-action@v1.0.1
+        uses: espressif/idf-examples-launchpad-ci-action@v1.0.3
         with:
           idf_version: ${{ matrix.idf_ver }}
           parallel_count: ${{ matrix.parallel_count }}
           parallel_index: ${{ matrix.parallel_index }}
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: built_files
           path: binaries/
@@ -148,19 +148,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Download built files
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: built_files
           path: binaries/
 
       - name: Upload built files to gh pages
-        uses: actions/upload-pages-artifact@v2
+        uses: actions/upload-pages-artifact@v3
         with:
           path: binaries/
 
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v2
+        uses: actions/deploy-pages@v4
 ```
 
 #### Note:
