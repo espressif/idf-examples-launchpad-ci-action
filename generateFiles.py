@@ -40,7 +40,7 @@ def get_target(line):
 
 # Regex to get the kit
 def get_kit(line):
-    return re.search(r'"config":\s*"([^"]*)",', line).group(1) if re.search(r'"config":\s*"([^"]*)",', line) else None
+    return re.search(r'"config_name":\s*"([^"]*)",', line).group(1) if re.search(r'"config_name":\s*"([^"]*)",', line) else None
 
 # Squash the json into a list of apps
 def squash_json(input_str):
