@@ -2,6 +2,10 @@
 
 - Nothing yet
 
+# Release v1.0.4 (17.3.2026)
+
+- Bumped idf-build-apps version
+
 # Release v1.0.3 (22.7.2025)
 
 - Fixed a regex for the extraction of config name
