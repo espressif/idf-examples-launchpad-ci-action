@@ -1,0 +1,91 @@
+name: Test
+
+on:
+  push:
+    branches: [v1, v2]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  unit:
+    strategy:
+      matrix:
+        python: ["3.10", "3.14"]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Install dependencies
+        run: pip install "idf-build-apps>=3.0,<4" pytest
+
+      - name: Run unit tests
+        run: python -m pytest tests -v
+
+  e2e:
+    strategy:
+      fail-fast: false
+      matrix:
+        idf_ver: ["release-v5.5", "latest"]
+    runs-on: ubuntu-latest
+    container: espressif/idf:${{ matrix.idf_ver }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Build sample with the action
+        uses: ./
+        with:
+          idf_version: ${{ matrix.idf_ver }}
+          config_file: tests/sample/.idf_build_apps.toml
+
+      - name: Check output
+        env:
+          IDF_VER: ${{ matrix.idf_ver }}
+        run: python3 tests/sample/check_output.py --binaries-dir binaries --idf-version "$IDF_VER"
+
+  e2e-parallel-build:
+    strategy:
+      matrix:
+        parallel_index: [1, 2]
+    runs-on: ubuntu-latest
+    container: espressif/idf:release-v5.5
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Build part of the sample with the action
+        uses: ./
+        with:
+          idf_version: release-v5.5
+          config_file: tests/sample/.idf_build_apps.toml
+          parallel_count: 2
+          parallel_index: ${{ matrix.parallel_index }}
+          generate_config: false
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: parallel-binaries-${{ matrix.parallel_index }}
+          path: binaries/
+
+  e2e-parallel-merge:
+    needs: e2e-parallel-build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: parallel-binaries-*
+          path: binaries/
+          merge-multiple: true
+
+      - name: Generate config.toml with the generate-config action
+        uses: ./generate-config
+
+      - name: Check output
+        run: python3 tests/sample/check_output.py --binaries-dir binaries --idf-version release-v5.5
