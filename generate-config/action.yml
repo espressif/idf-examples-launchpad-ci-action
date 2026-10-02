@@ -1,0 +1,36 @@
+name: Generate ESP Launchpad config.toml
+description: "Generates config.toml from the results of one or more (parallel) idf-examples-launchpad-ci-action builds"
+
+inputs:
+  binaries_dir:
+    description: "Directory with the merged binaries and app_info_*.json files of all build jobs. config.toml is written here"
+    required: false
+    default: "binaries"
+  app_name_format:
+    description: "Format of the app names in config.toml. Placeholders: @n app name, @c config name, @v IDF version, @f app path"
+    required: false
+    default: "@n-@c-@v"
+  firmware_images_url:
+    description: "URL the binaries are served from. Defaults to https://<owner>.github.io/<repo>/"
+    required: false
+    default: ""
+
+runs:
+  using: "composite"
+  steps:
+    - name: Generate config.toml
+      shell: bash
+      env:
+        BINARIES_DIR: ${{ inputs.binaries_dir }}
+        APP_NAME_FORMAT: ${{ inputs.app_name_format }}
+        FIRMWARE_IMAGES_URL: ${{ inputs.firmware_images_url }}
+      run: |
+        python3 "${GITHUB_ACTION_PATH}/../launchpad/generate_config.py" \
+          --binaries-dir "${BINARIES_DIR}" \
+          --app-name-format "${APP_NAME_FORMAT}" \
+          --firmware-images-url "${FIRMWARE_IMAGES_URL}" \
+          --remove-app-info
+
+branding:
+  icon: "file-text"
+  color: "blue"

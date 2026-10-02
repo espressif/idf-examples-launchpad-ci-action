@@ -1,0 +1,7 @@
+# idf-build-apps configuration used by the self-test workflow (.github/workflows/test.yml)
+paths = ["tests/sample/examples"]
+recursive = true
+target = "all"
+default_build_targets = ["esp32", "esp32c3"]
+# sdkconfig.ci -> default app, sdkconfig.ci.<name> -> config variant <name>
+config_rules = ["sdkconfig.ci=", "sdkconfig.ci.*="]

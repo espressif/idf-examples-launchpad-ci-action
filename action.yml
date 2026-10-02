@@ -3,43 +3,102 @@ description: "Builds and uploads binaries to github pages for ESP Launchpad"
 
 inputs:
   idf_version:
-    description: "IDF version"
+    description: "IDF version label used in the app and binary names (usually the tag of the espressif/idf image)"
     required: false
     default: "latest"
   config_file:
-    description: Configuration file for idf-build-apps
+    description: "Configuration file for idf-build-apps"
     required: false
     default: "./.idf_build_apps.toml"
   parallel_count:
     description: "Number of parallel builds"
     required: false
-    default: 1
+    default: "1"
   parallel_index:
     description: "Index of the current parallel build"
     required: false
-    default: 1
+    default: "1"
+  output_dir:
+    description: "Directory for the merged binaries and config.toml"
+    required: false
+    default: "binaries"
+  generate_config:
+    description: "Generate config.toml. Set to false when the results of parallel jobs are merged later with the generate-config action"
+    required: false
+    default: "true"
+  app_name_format:
+    description: "Format of the app names in config.toml. Placeholders: @n app name, @c config name, @v IDF version, @f app path"
+    required: false
+    default: "@n-@c-@v"
+  firmware_images_url:
+    description: "URL the binaries are served from. Defaults to https://<owner>.github.io/<repo>/"
+    required: false
+    default: ""
+  idf_build_apps_version:
+    description: "Version (e.g. 3.0.2) or version specifier (e.g. >=3.0,<4) of idf-build-apps to install"
+    required: false
+    default: ">=3.0,<4"
+
+outputs:
+  output_dir:
+    description: "Directory with the merged binaries and config.toml"
+    value: ${{ inputs.output_dir }}
 
 runs:
   using: "composite"
   steps:
-    - run: echo "${{ github.action_path }}" >> $GITHUB_PATH
+    - name: Build examples and merge binaries
       shell: bash
-
-    - run: echo "IDF_VERSION=${{ inputs.idf_version }}" >> $GITHUB_ENV
-      shell: bash
-
-    - name: Build examples
-      shell: bash
+      env:
+        CONFIG_FILE: ${{ inputs.config_file }}
+        PARALLEL_COUNT: ${{ inputs.parallel_count }}
+        PARALLEL_INDEX: ${{ inputs.parallel_index }}
+        IDF_BUILD_APPS_VERSION: ${{ inputs.idf_build_apps_version }}
+        LAUNCHPAD_OUTPUT_DIR: ${{ inputs.output_dir }}
+        LAUNCHPAD_IDF_VERSION: ${{ inputs.idf_version }}
       run: |
-        export IDF_EXTRA_ACTIONS_PATH=${GITHUB_WORKSPACE}/examples
-        ${IDF_PATH}/install.sh --enable-ci
-        . ${IDF_PATH}/export.sh
-        pip install rtoml ruamel.yaml idf-component-manager idf-build-apps==2.16.0
+        . "${IDF_PATH}/export.sh"
+
+        if ! python -c 'import sys; sys.exit(sys.version_info < (3, 10))'; then
+          echo "::error::This action requires Python >= 3.10 (ESP-IDF v5.2 or newer Docker image). Use espressif/idf-examples-launchpad-ci-action@v1 for older ESP-IDF versions."
+          exit 1
+        fi
+        if [ ! -f "${CONFIG_FILE}" ]; then
+          echo "::error::idf-build-apps configuration file '${CONFIG_FILE}' not found. Create it or set the config_file input."
+          exit 1
+        fi
+
+        idf_build_apps_spec="${IDF_BUILD_APPS_VERSION}"
+        case "${idf_build_apps_spec}" in
+          [0-9]*) idf_build_apps_spec="==${idf_build_apps_spec}" ;;
+        esac
+        python -m pip install "idf-build-apps${idf_build_apps_spec}"
+
+        mkdir -p "${LAUNCHPAD_OUTPUT_DIR}"
+        app_info_suffix="${LAUNCHPAD_IDF_VERSION//[^A-Za-z0-9_-]/_}"
+
         echo "Building examples..."
-        idf-build-apps build --collect-app-info out.json --config-file ${{ inputs.config_file }} --build-dir "build_@t_@w" --parallel-count ${{ inputs.parallel_count }} --parallel-index ${{ inputs.parallel_index }}
-        echo "Merging binaries and generating config.toml..."
-        python ${GITHUB_ACTION_PATH}/generateFiles.py out.json
-        echo "Done building examples."
+        idf-build-apps build \
+          --config-file "${CONFIG_FILE}" \
+          --collect-app-info "${LAUNCHPAD_OUTPUT_DIR}/app_info_${app_info_suffix}_@p.json" \
+          --build-system launchpad_app:LaunchpadApp \
+          --extra-pythonpaths "${GITHUB_ACTION_PATH}/launchpad" \
+          --parallel-count "${PARALLEL_COUNT}" \
+          --parallel-index "${PARALLEL_INDEX}"
+
+    - name: Generate config.toml
+      if: inputs.generate_config == 'true'
+      shell: bash
+      env:
+        BINARIES_DIR: ${{ inputs.output_dir }}
+        APP_NAME_FORMAT: ${{ inputs.app_name_format }}
+        FIRMWARE_IMAGES_URL: ${{ inputs.firmware_images_url }}
+      run: |
+        python3 "${GITHUB_ACTION_PATH}/launchpad/generate_config.py" \
+          --binaries-dir "${BINARIES_DIR}" \
+          --app-name-format "${APP_NAME_FORMAT}" \
+          --firmware-images-url "${FIRMWARE_IMAGES_URL}" \
+          --remove-app-info
 
 branding:
   icon: "package"
