@@ -2,6 +2,10 @@
 
 - Nothing yet
 
+# Release v1.0.5 (2.10.2026)
+
+- Bumped idf-build-apps version
+
 # Release v1.0.4 (17.3.2026)
 
 - Bumped idf-build-apps version
